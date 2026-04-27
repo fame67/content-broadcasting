@@ -307,4 +307,4 @@ content-broadcasting-system/
 - The `DELETE /content/:id` endpoint only allows deleting `pending` or `rejected` content — approved content cannot be deleted to maintain audit trail.
 - Principal can register via `/auth/register` with `role: "principal"`. In a production system, this route would be restricted or admin-seeded only.
 ## Live Demo
-https://content-broadcasting-production.up.railway.app
+https://content-broadcasting-production.up.railway.app/health
