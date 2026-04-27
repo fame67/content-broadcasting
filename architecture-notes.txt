@@ -1,0 +1,164 @@
+================================================================================
+CONTENT BROADCASTING SYSTEM — ARCHITECTURE NOTES
+================================================================================
+
+1. AUTHENTICATION & RBAC FLOW
+─────────────────────────────
+- JWT-based stateless authentication.
+- On login, a signed JWT (HS256) is returned containing { id, email, role }.
+- The `authenticate` middleware (src/middlewares/auth.js) verifies the token on
+  every protected request and re-fetches the user from DB to confirm existence.
+- The `authorize(...roles)` middleware (src/middlewares/rbac.js) enforces role
+  separation. It is composed with routes like:
+    router.post('/upload', authenticate, authorize('teacher'), ...)
+    router.patch('/approve', authenticate, authorize('principal'), ...)
+- Two roles exist: 'principal' and 'teacher'. Permissions are strictly
+  non-overlapping — a teacher cannot approve content and a principal cannot upload.
+- Passwords are hashed using bcryptjs (salt rounds = 10).
+
+2. SUBJECT-BASED SYSTEM DESIGN
+────────────────────────────────
+- Subject is a free-text field stored in lowercase (e.g. 'maths', 'science').
+- Each (teacher, subject) pair maps to one content_slot row.
+- Multiple content items can belong to the same slot, with an explicit
+  rotation_order to define their sequence.
+- The public API supports ?subject= filtering so students can tune into a
+  specific subject's broadcast.
+
+3. UPLOAD HANDLING
+───────────────────
+- Multer is configured with diskStorage (src/config/multer.js).
+- Files are saved to the /uploads directory (configurable via UPLOAD_DIR env var).
+- MIME-type whitelist: image/jpeg, image/png, image/gif.
+- Max file size: 10 MB (configurable via MAX_FILE_SIZE_MB env var).
+- File extension is derived from MIME type (not user-supplied filename).
+- On DB write failure, the uploaded file is deleted to avoid orphaned files.
+- Files are served as static assets via Express at /uploads/<filename>.
+- BONUS EXTENSION: Replace multer diskStorage with multer-s3 and point to an
+  S3 bucket; only the storage engine needs to change; the rest of the pipeline
+  is identical.
+
+4. APPROVAL WORKFLOW DESIGN
+────────────────────────────
+  Content lifecycle:
+
+    [ Teacher uploads ] → status = 'pending'
+         ↓
+    [ Principal reviews ]
+         ↓                    ↓
+    status = 'approved'   status = 'rejected'
+                                 + rejection_reason stored
+                                 + visible to teacher via GET /content/my
+
+- Only the principal role can call PATCH /approval/content/:id/approve|reject.
+- Rejection must include a reason (enforced at the controller level).
+- Approved content is NOT immediately live — it only broadcasts when it falls
+  within the teacher-defined time window (start_time / end_time).
+
+5. SCHEDULING / ROTATION LOGIC  ⭐ (MOST IMPORTANT)
+─────────────────────────────────────────────────────
+Algorithm (src/services/schedulingService.js):
+
+  STEP 1 — Eligibility filter
+    SELECT approved content WHERE:
+      - uploaded_by = teacherId
+      - status = 'approved'
+      - start_time IS NOT NULL AND end_time IS NOT NULL
+      - NOW() BETWEEN start_time AND end_time
+
+  STEP 2 — Group by subject
+    Each subject maintains an independent rotation.
+
+  STEP 3 — Epoch-based deterministic rotation
+    For each subject group (ordered by rotation_order):
+
+    totalCycleMs = Σ (item.duration × 60 × 1000)   // sum of all durations in ms
+    positionMs   = Date.now() % totalCycleMs          // where we are in cycle
+
+    Walk through items accumulating duration:
+      if positionMs < accumulated + itemDuration → this item is ACTIVE
+      else accumulated += itemDuration → continue
+
+  Why epoch-based?
+    - All students hitting the API at the same millisecond get the same content.
+    - No shared state / DB writes needed for rotation position.
+    - Rotation is continuous and loops automatically.
+    - Adding/removing content changes the cycle length but keeps it deterministic.
+
+  Edge cases handled:
+    - No content at all → empty response "No content available"
+    - Approved but start_time/end_time not set → NOT shown (teacher must schedule)
+    - Outside time window → NOT shown
+    - Invalid / non-existent teacher → empty response (not 4xx)
+    - Invalid subject filter → empty response (not 4xx)
+    - Single content item → always shown within its window (no rotation needed)
+    - All durations = 0 → first item shown as fallback
+
+6. DATABASE DESIGN DECISIONS
+─────────────────────────────
+Tables:
+  users            — stores both principals and teachers; role enum discriminates.
+  content          — core table; holds file metadata, status, scheduling window.
+  content_slots    — one row per (teacher, subject) pair; groups content for rotation.
+  content_schedule — join table linking content → slot with rotation_order and duration.
+
+Key design choices:
+  - UUIDs as primary keys (no sequential ID enumeration attacks).
+  - status ENUM enforces valid states at DB level.
+  - start_time / end_time stored as DATETIME UTC (timezone='+00:00' on pool).
+  - ON DELETE CASCADE from users → content; content → content_schedule.
+  - Indexes on: email, role, status, subject, uploaded_by, (start_time, end_time).
+  - content_schedule has UNIQUE(slot_id, rotation_order) to prevent duplicates.
+
+7. FOLDER STRUCTURE
+────────────────────
+  src/
+    controllers/    — Request handlers; thin layer calling services/models
+    routes/         — Express Router definitions; apply middleware chains
+    services/       — Business logic (scheduling); reusable across controllers
+    middlewares/    — auth.js, rbac.js, validate.js, errorHandler.js
+    models/         — (future: ORM model definitions or query helpers per entity)
+    utils/          — response.js (standard JSON envelope)
+    config/         — db.js (MySQL pool), multer.js (file upload config)
+  database/
+    schema.sql      — Full DDL; run once to create tables
+    init.js         — Schema runner + demo seed data
+  uploads/          — Local file storage (gitignored)
+  server.js         — HTTP server bootstrap
+  architecture-notes.txt  — This file
+
+8. MIDDLEWARE USAGE
+────────────────────
+  helmet()        — Sets secure HTTP headers (XSS, clickjacking, etc.)
+  cors()          — Allows cross-origin requests (configure origins in production)
+  express.json()  — Parses JSON request bodies
+  authenticate    — Verifies JWT; attaches req.user
+  authorize(role) — Guards routes by role; returns 403 on mismatch
+  upload.single() — Multer: parses multipart, saves file, attaches req.file
+  errorHandler    — Catches multer errors and unhandled exceptions; uniform response
+  rateLimit()     — Applied to /content/live/* to protect public API
+
+9. SCALABILITY APPROACH
+────────────────────────
+  Current (MVP):
+    - MySQL connection pool (10 connections) — supports concurrent requests.
+    - Stateless JWT — horizontally scalable with no session store.
+    - Epoch-based scheduling — zero DB writes per rotation tick.
+
+  Caching (Bonus — Redis):
+    - Cache GET /content/live/:teacherId responses with TTL = min(rotation_duration).
+    - Invalidate cache key on: approval, rejection, content time window change.
+    - Implementation: wrap getLiveContent() in a Redis get/set with key
+      `live:<teacherId>:<subject>` and TTL derived from smallest duration.
+
+  Queue (Bonus):
+    - File uploads can be offloaded to a queue (Bull + Redis) for S3 upload,
+      thumbnail generation, and virus scanning without blocking the HTTP response.
+    - Approval notifications can be pushed to a queue → email/SMS service.
+
+  Future:
+    - Read replicas for the broadcast query (high-read, low-write pattern).
+    - CDN in front of /uploads for file delivery at scale.
+    - Separate broadcast service deployable independently.
+
+================================================================================
