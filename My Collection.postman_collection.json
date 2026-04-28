@@ -1,0 +1,249 @@
+{
+  "info": {
+    "_postman_id": "17d82eed-e215-46cc-a74e-cb2adce3ba8c",
+    "name": "My Collection",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "49906650",
+    "_collection_link": "https://go.postman.co/collection/49906650-17d82eed-e215-46cc-a74e-cb2adce3ba8c?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "http://localhost:3000/auth/login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"alice@school.com\",\r\n    \"password\": \"password123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:3000/content/upload",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZlOTYwNDQzLWY1ZDAtNGQxYS1hZjNhLTYzZjk4ZjU5NmZjOCIsImVtYWlsIjoiYWxpY2VAc2Nob29sLmNvbSIsInJvbGUiOiJ0ZWFjaGVyIiwiaWF0IjoxNzc3MzQ1ODc1LCJleHAiOjE3Nzc5NTA2NzV9.egFtd0uvFqowLSc8RSLAKQEwG6eiLKTD-zGMUKNcY8s",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "title",
+              "value": "Maths Chapter 1",
+              "type": "text",
+              "uuid": "9e513479-af17-4c98-88b1-cd35795ca5a3"
+            },
+            {
+              "key": "subject",
+              "value": "maths",
+              "type": "text",
+              "uuid": "c3eaf0b6-09df-4d19-8bbc-dd22ff3209e4"
+            },
+            {
+              "key": "description",
+              "value": "Algebra notes",
+              "type": "text",
+              "uuid": "d8a9a9d0-f7b6-4c87-abed-92f9ddad50d7"
+            },
+            {
+              "key": "start_time",
+              "value": "2026-04-27T00:00:00Z",
+              "type": "text",
+              "uuid": "4dff0efc-6f53-4760-ba3a-d8121921ebf6"
+            },
+            {
+              "key": "end_time",
+              "value": "2026-04-30T00:00:00Z",
+              "type": "text",
+              "uuid": "c401f0e7-3d89-4553-b09d-1da8c7993f3f"
+            },
+            {
+              "key": "rotation_duration",
+              "value": "5",
+              "type": "text",
+              "uuid": "ddad1511-3b87-46d8-8243-7cb3441b331f"
+            },
+            {
+              "key": "file",
+              "type": "file",
+              "uuid": "0f527d4c-b4e8-44c7-a389-b1bc3f773699",
+              "src": "/C:/Users/hall_/Desktop/react js project/portfolio/src/component/contact/mail.jpg"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:3000/content/upload",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "content",
+            "upload"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:3000/auth/login",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZlOTYwNDQzLWY1ZDAtNGQxYS1hZjNhLTYzZjk4ZjU5NmZjOCIsImVtYWls",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"principal@school.com\",\r\n    \"password\": \"password123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:3000/approval/content/e12e0a5e-a31d-4d47-9695-6ad472c80980/approve",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI5NTE1MGFhLTc5NGYtNGRlYi1iYjAzLTM1ZTU4MzA5OTVkNiIsImVtYWlsIjoicHJpbmNpcGFsQHNjaG9vbC5jb20iLCJyb2xlIjoicHJpbmNpcGFsIiwiaWF0IjoxNzc3MzQ2MzQ2LCJleHAiOjE3Nzc5NTExNDZ9.HL6SQSd_slIAhNbwl93E3cczjIjPeUlZqIDEzKVHvls",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/approval/content/e12e0a5e-a31d-4d47-9695-6ad472c80980/approve",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "approval",
+            "content",
+            "e12e0a5e-a31d-4d47-9695-6ad472c80980",
+            "approve"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:3000/auth/me",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZlOTYwNDQzLWY1ZDAtNGQxYS1hZjNhLTYzZjk4ZjU5NmZjOCIsImVtYWlsIjoiYWxpY2VAc2Nob29sLmNvbSIsInJvbGUiOiJ0ZWFjaGVyIiwiaWF0IjoxNzc3MzQ1ODc1LCJleHAiOjE3Nzc5NTA2NzV9.egFtd0uvFqowLSc8RSLAKQEwG6eiLKTD-zGMUKNcY8s",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/auth/me",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "auth",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "http://localhost:3000/content/live/6e960443-f5d0-4d1a-af3a-63f98f596fc8",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/content/live/6e960443-f5d0-4d1a-af3a-63f98f596fc8",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "content",
+            "live",
+            "6e960443-f5d0-4d1a-af3a-63f98f596fc8"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
