@@ -305,6 +305,6 @@ content-broadcasting-system/
 - Rotation position is calculated from Unix epoch — deterministic, no DB polling needed.
 - `rotation_duration` on the content row and `duration` on the schedule row are kept in sync on upload. Future UI can allow per-schedule overrides.
 - The `DELETE /content/:id` endpoint only allows deleting `pending` or `rejected` content — approved content cannot be deleted to maintain audit trail.
-- Principal can register via `/auth/register` with `role: "principal"`. In a production system, this route would be restricted or admin-seeded only.
+- Principal can register via `/auth/register` with `role: "principal"`. In a production system, this route would be restricted or admin-seeded ONLY.
 ## Live Demo
 https://content-broadcasting-production.up.railway.app/health
